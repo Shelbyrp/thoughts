@@ -54,3 +54,12 @@ export const ADD_COMMENT = gql`
     }
   }
 `;
+
+
+export const REMOVE_THOUGHT = gql`
+mutation removeThought($thoughtId: ID!) {
+  removeThought( thoughtId: $thoughtId) {
+    _id
+  }
+}
+`;
