@@ -1,9 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { QUERY_THOUGHTS } from '../../utils/queries';
 import { useMutation } from '@apollo/client';
 import { useParams } from 'react-router-dom';
+import { REMOVE_THOUGHT } from '../../utils/mutations';
+import Auth from '../../utils/auth';
 
 
 const ThoughtList = ({
@@ -12,24 +13,24 @@ const ThoughtList = ({
   showTitle = true,
   showUsername = true,
 }) => {
-  if (!thoughts.length) {
-    return <h3>No Thoughts Yet</h3>;
 
+const [removeThought, { error }] = useMutation(REMOVE_THOUGHT);
 
+const handleDeleteThought = async (thoughtId) => {
+  // get token
+  const token = Auth.loggedIn() ? Auth.getToken() : null;
+  if (!token) {
+    return false;
   }
 
-  const { thoughtId } = useParams();
-
-  const { data } = useQuery(QUERY_THOUGHTS, {
-    // pass URL parameter
-    variables: { thoughtId: thoughtId },
-});
-console.log("data", data)
-
-  const [removeThought, { error }] = useMutation(REMOVE_THOUGHT, {
-    refetchQueries: [{ query: QUERY_THOUGHTS, variables: thoughtId }],
-    awaitRefetchQueries: true,
-});
+  try {
+    const { data } = await removeThought({
+      variables: { thoughtId },
+    });
+  } catch (err) {
+    console.error(err);
+  }
+};
 
 
   return (
@@ -68,8 +69,7 @@ console.log("data", data)
             </Link>
             <Link
               className="btn btn-primary btn-block btn-squared"
-              to={`/thoughts/${thought._id}`}
-              onClick={() => removeThought({ variables: { id: thought._id } })}
+              onClick={() => handleDeleteThought(thought.thoughtId)}
             >
               Delete this thought
             </Link>
